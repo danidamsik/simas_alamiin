@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,11 +13,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        Schema::disableForeignKeyConstraints();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        foreach ([
+            'audit_log',
+            'siswa_kelas_history',
+            'absensi_detail',
+            'absensi',
+            'jadwal',
+            'sessions',
+            'siswa',
+            'guru',
+            'users',
+            'kelas',
+            'periode',
+        ] as $table) {
+            DB::table($table)->truncate();
+        }
+
+        Schema::enableForeignKeyConstraints();
+
+        $this->call([
+            PeriodeSeeder::class,
+            KelasSeeder::class,
+            UserSeeder::class,
+            GuruSeeder::class,
+            SiswaSeeder::class,
+            SessionSeeder::class,
+            JadwalSeeder::class,
+            AbsensiSeeder::class,
+        ]);
     }
 }

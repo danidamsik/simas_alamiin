@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use App\Models\Absensi;
+use App\Policies\AbsensiPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +16,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        Absensi::class => AbsensiPolicy::class,
     ];
 
     /**
@@ -21,6 +24,12 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define('manage-master-data', fn (User $user) => $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('manage-users', fn (User $user) => $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('manage-sessions-and-jadwal', fn (User $user) => $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('input-absensi', fn (User $user) => $user->hasAnyRole([User::ROLE_ADMIN, User::ROLE_GURU]));
+        Gate::define('edit-any-absensi', fn (User $user) => $user->hasRole(User::ROLE_ADMIN));
+        Gate::define('view-all-absensi', fn (User $user) => $user->hasAnyRole([User::ROLE_ADMIN, User::ROLE_KEPALA_SEKOLAH]));
+        Gate::define('export-laporan', fn (User $user) => $user->hasAnyRole([User::ROLE_ADMIN, User::ROLE_KEPALA_SEKOLAH]));
     }
 }
