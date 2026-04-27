@@ -15,10 +15,14 @@ class Periode extends Model
     protected $fillable = [
         'tahun_ajaran',
         'semester',
+        'tanggal_mulai',
+        'tanggal_selesai',
         'is_active',
     ];
 
     protected $casts = [
+        'tanggal_mulai' => 'date:Y-m-d',
+        'tanggal_selesai' => 'date:Y-m-d',
         'is_active' => 'boolean',
     ];
 

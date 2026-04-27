@@ -2,10 +2,8 @@
 import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Loader2, LogIn, School } from 'lucide-vue-next';
 
 defineProps({
     canResetPassword: {
@@ -31,64 +29,80 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head title="Login" />
 
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
+        <div class="border-b border-gray-100 px-6 pb-6 pt-7 text-center">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 ring-1 ring-inset ring-primary-600/20">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm">
+                    <School class="h-6 w-6" stroke-width="2.25" />
+                </div>
+            </div>
+            <div class="mt-4 space-y-1">
+                <h1 class="font-heading text-2xl font-semibold leading-7 text-gray-950">SIMAS Al-Amiin</h1>
+                <p class="mx-auto max-w-xs text-sm font-medium leading-5 text-primary-700">
+                    Membangun Disiplin Melalui Presensi Digital
+                </p>
+            </div>
         </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+        <form class="space-y-5 px-6 py-6" @submit.prevent="submit">
+            <div v-if="status" class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                {{ status }}
+            </div>
 
-                <TextInput
+            <div>
+                <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
+                <input
                     id="email"
-                    type="email"
-                    class="mt-1 block w-full"
                     v-model="form.email"
+                    type="email"
+                    class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-primary-600 focus:ring-primary-600"
+                    placeholder="admin@alamiin.sch.id"
                     required
                     autofocus
                     autocomplete="username"
                 />
-
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
+            <div>
+                <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700">Password</label>
+                <input
                     id="password"
-                    type="password"
-                    class="mt-1 block w-full"
                     v-model="form.password"
+                    type="password"
+                    class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-primary-600 focus:ring-primary-600"
+                    placeholder="Masukkan password"
                     required
                     autocomplete="current-password"
                 />
-
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="block mt-4">
+            <div class="flex items-center justify-between gap-3">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
+                    <span class="ms-2 text-sm text-gray-600">Ingat saya</span>
                 </label>
-            </div>
 
-            <div class="flex items-center justify-end mt-4">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    class="rounded-md text-sm font-medium text-primary-700 hover:text-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
                 >
-                    Forgot your password?
+                    Lupa password?
                 </Link>
-
-                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
             </div>
+
+            <button
+                type="submit"
+                class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary-600 bg-primary-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="form.processing"
+            >
+                <Loader2 v-if="form.processing" class="h-4 w-4 animate-spin" />
+                <LogIn v-else class="h-4 w-4" />
+                Masuk
+            </button>
         </form>
     </GuestLayout>
 </template>

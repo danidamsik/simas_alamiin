@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { Loader2 } from 'lucide-vue-next';
 
 const props = defineProps({
     variant: {
@@ -13,6 +14,14 @@ const props = defineProps({
     type: {
         type: String,
         default: 'button',
+    },
+    loading: {
+        type: Boolean,
+        default: false,
+    },
+    disabled: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -33,8 +42,9 @@ const classes = computed(() => [
 </script>
 
 <template>
-    <button :type="type" :class="classes" v-bind="$attrs">
-        <slot name="icon" />
+    <button :type="type" :class="classes" :disabled="disabled || loading" v-bind="$attrs">
+        <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
+        <slot v-else name="icon" />
         <slot />
     </button>
 </template>

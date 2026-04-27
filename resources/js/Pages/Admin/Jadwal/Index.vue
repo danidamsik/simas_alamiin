@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppButton from '@/Components/AppButton.vue';
 import AppInput from '@/Components/AppInput.vue';
 import AppSelect from '@/Components/AppSelect.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
@@ -20,6 +21,8 @@ const props = defineProps({
 
 const showModal = ref(false);
 const editing = ref(null);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 const filter = ref({
     periode_id: props.filters.periode_id ?? '',
     hari: props.filters.hari ?? '',
@@ -95,10 +98,21 @@ const submit = () => {
     editing.value ? form.put(route('jadwal.update', editing.value.id), options) : form.post(route('jadwal.store'), options);
 };
 
-const destroy = (jadwal) => {
-    if (confirm(`Hapus jadwal ${jadwal.mata_pelajaran}?`)) {
-        router.delete(route('jadwal.destroy', jadwal.id), { preserveScroll: true });
+const openDelete = (jadwal) => {
+    deleteTarget.value = jadwal;
+};
+const closeDelete = () => {
+    if (!deleting.value) {
+        deleteTarget.value = null;
     }
+};
+const destroy = () => {
+    deleting.value = true;
+    router.delete(route('jadwal.destroy', deleteTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => deleteTarget.value = null,
+        onFinish: () => deleting.value = false,
+    });
 };
 </script>
 
@@ -142,7 +156,7 @@ const destroy = (jadwal) => {
                         <p class="text-sm text-gray-500">{{ jadwal.periode?.tahun_ajaran }} {{ capitalize(jadwal.periode?.semester) }}</p>
                         <div class="flex justify-end gap-2">
                             <button class="rounded-lg p-2 text-gray-600 hover:bg-gray-100" title="Edit" @click="openEdit(jadwal)"><Pencil class="h-4 w-4" /></button>
-                            <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="destroy(jadwal)"><Trash2 class="h-4 w-4" /></button>
+                            <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="openDelete(jadwal)"><Trash2 class="h-4 w-4" /></button>
                         </div>
                     </div>
                 </div>
@@ -162,9 +176,18 @@ const destroy = (jadwal) => {
                 </div>
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="form.processing">Simpan</AppButton>
+                    <AppButton type="submit" :loading="form.processing">Simpan</AppButton>
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            :show="!!deleteTarget"
+            title="Hapus Jadwal"
+            :message="`Hapus jadwal ${deleteTarget?.mata_pelajaran ?? ''}?`"
+            confirm-text="Ya, hapus"
+            :processing="deleting"
+            @close="closeDelete"
+            @confirm="destroy"
+        />
     </AuthenticatedLayout>
 </template>

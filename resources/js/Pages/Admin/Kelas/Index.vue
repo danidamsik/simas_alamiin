@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppButton from '@/Components/AppButton.vue';
 import AppInput from '@/Components/AppInput.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DataTable from '@/Components/DataTable.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -13,6 +14,8 @@ defineProps({ kelas: Object });
 
 const showModal = ref(false);
 const editing = ref(null);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 const form = useForm({ nama_kelas: '' });
 const title = computed(() => editing.value ? 'Edit Kelas' : 'Tambah Kelas');
 
@@ -35,10 +38,21 @@ const submit = () => {
     editing.value ? form.put(route('kelas.update', editing.value.id), options) : form.post(route('kelas.store'), options);
 };
 
-const destroy = (kelas) => {
-    if (confirm(`Hapus kelas ${kelas.nama_kelas}?`)) {
-        router.delete(route('kelas.destroy', kelas.id), { preserveScroll: true });
+const openDelete = (kelas) => {
+    deleteTarget.value = kelas;
+};
+const closeDelete = () => {
+    if (!deleting.value) {
+        deleteTarget.value = null;
     }
+};
+const destroy = () => {
+    deleting.value = true;
+    router.delete(route('kelas.destroy', deleteTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => deleteTarget.value = null,
+        onFinish: () => deleting.value = false,
+    });
 };
 </script>
 
@@ -59,7 +73,7 @@ const destroy = (kelas) => {
                 <template #actions="{ row }">
                     <div class="flex justify-end gap-2">
                         <button class="rounded-lg p-2 text-gray-600 hover:bg-gray-100" title="Edit" @click="openEdit(row)"><Pencil class="h-4 w-4" /></button>
-                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="destroy(row)"><Trash2 class="h-4 w-4" /></button>
+                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="openDelete(row)"><Trash2 class="h-4 w-4" /></button>
                     </div>
                 </template>
             </DataTable>
@@ -71,9 +85,18 @@ const destroy = (kelas) => {
                 <AppInput v-model="form.nama_kelas" label="Nama Kelas" placeholder="X IPA 1" :error="form.errors.nama_kelas" />
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="form.processing">Simpan</AppButton>
+                    <AppButton type="submit" :loading="form.processing">Simpan</AppButton>
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            :show="!!deleteTarget"
+            title="Hapus Kelas"
+            :message="`Hapus kelas ${deleteTarget?.nama_kelas ?? ''}?`"
+            confirm-text="Ya, hapus"
+            :processing="deleting"
+            @close="closeDelete"
+            @confirm="destroy"
+        />
     </AuthenticatedLayout>
 </template>

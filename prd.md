@@ -440,6 +440,8 @@ updated_at (timestamp)
 id (bigint, PK)
 tahun_ajaran (string)   // contoh: 2025/2026
 semester (enum: ganjil, genap)
+tanggal_mulai (date)
+tanggal_selesai (date)
 is_active (boolean)
 created_at (timestamp)
 updated_at (timestamp)

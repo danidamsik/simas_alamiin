@@ -34,8 +34,8 @@ defineEmits(['close', 'confirm']);
             <h2 class="font-heading text-lg font-semibold text-gray-900">{{ title }}</h2>
             <p class="mt-2 text-sm leading-6 text-gray-600">{{ message }}</p>
             <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <AppButton variant="secondary" @click="$emit('close')">Batal</AppButton>
-                <AppButton variant="danger" :disabled="processing" @click="$emit('confirm')">{{ confirmText }}</AppButton>
+                <AppButton variant="secondary" :disabled="processing" @click="$emit('close')">Batal</AppButton>
+                <AppButton variant="danger" :loading="processing" @click="$emit('confirm')">{{ confirmText }}</AppButton>
             </div>
         </div>
     </Modal>

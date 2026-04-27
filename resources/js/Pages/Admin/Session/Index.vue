@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppButton from '@/Components/AppButton.vue';
 import AppInput from '@/Components/AppInput.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DataTable from '@/Components/DataTable.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -15,6 +16,8 @@ defineProps({
 
 const showModal = ref(false);
 const editing = ref(null);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 const form = useForm({
     nama_sesi: '',
     jam_mulai: '',
@@ -46,10 +49,21 @@ const submit = () => {
     editing.value ? form.put(route('sessions.update', editing.value.id), options) : form.post(route('sessions.store'), options);
 };
 
-const destroy = (session) => {
-    if (confirm(`Hapus ${session.nama_sesi}?`)) {
-        router.delete(route('sessions.destroy', session.id), { preserveScroll: true });
+const openDelete = (session) => {
+    deleteTarget.value = session;
+};
+const closeDelete = () => {
+    if (!deleting.value) {
+        deleteTarget.value = null;
     }
+};
+const destroy = () => {
+    deleting.value = true;
+    router.delete(route('sessions.destroy', deleteTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => deleteTarget.value = null,
+        onFinish: () => deleting.value = false,
+    });
 };
 </script>
 
@@ -59,8 +73,7 @@ const destroy = (session) => {
         <template #header><h1 class="font-heading text-lg font-semibold text-gray-950">Session</h1></template>
 
         <div class="space-y-4">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-sm text-gray-600">Atur jam pelajaran dan cegah waktu yang tumpang tindih.</p>
+            <div class="flex justify-end">
                 <AppButton @click="openCreate"><template #icon><Plus class="h-4 w-4" /></template>Tambah</AppButton>
             </div>
 
@@ -77,7 +90,7 @@ const destroy = (session) => {
                 <template #actions="{ row }">
                     <div class="flex justify-end gap-2">
                         <button class="rounded-lg p-2 text-gray-600 hover:bg-gray-100" title="Edit" @click="openEdit(row)"><Pencil class="h-4 w-4" /></button>
-                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="destroy(row)"><Trash2 class="h-4 w-4" /></button>
+                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="openDelete(row)"><Trash2 class="h-4 w-4" /></button>
                     </div>
                 </template>
             </DataTable>
@@ -94,9 +107,18 @@ const destroy = (session) => {
                 </div>
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="form.processing">Simpan</AppButton>
+                    <AppButton type="submit" :loading="form.processing">Simpan</AppButton>
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            :show="!!deleteTarget"
+            title="Hapus Session"
+            :message="`Hapus ${deleteTarget?.nama_sesi ?? ''}?`"
+            confirm-text="Ya, hapus"
+            :processing="deleting"
+            @close="closeDelete"
+            @confirm="destroy"
+        />
     </AuthenticatedLayout>
 </template>

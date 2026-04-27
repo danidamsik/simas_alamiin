@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppButton from '@/Components/AppButton.vue';
 import AppInput from '@/Components/AppInput.vue';
 import AppSelect from '@/Components/AppSelect.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DataTable from '@/Components/DataTable.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -18,6 +19,8 @@ const props = defineProps({
 
 const showModal = ref(false);
 const editing = ref(null);
+const deactivateTarget = ref(null);
+const deactivating = ref(false);
 const filter = ref({ search: props.filters.search ?? '', status: props.filters.status ?? 'active' });
 const statusOptions = [{ value: 'active', label: 'Aktif' }, { value: 'all', label: 'Semua' }];
 const userSelectOptions = computed(() => {
@@ -57,10 +60,21 @@ const submit = () => {
     const options = { preserveScroll: true, onSuccess: () => showModal.value = false };
     editing.value ? form.put(route('guru.update', editing.value.id), options) : form.post(route('guru.store'), options);
 };
-const deactivate = (guru) => {
-    if (confirm(`Nonaktifkan guru ${guru.nama}?`)) {
-        router.delete(route('guru.destroy', guru.id), { preserveScroll: true });
+const openDeactivate = (guru) => {
+    deactivateTarget.value = guru;
+};
+const closeDeactivate = () => {
+    if (!deactivating.value) {
+        deactivateTarget.value = null;
     }
+};
+const deactivate = () => {
+    deactivating.value = true;
+    router.delete(route('guru.destroy', deactivateTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => deactivateTarget.value = null,
+        onFinish: () => deactivating.value = false,
+    });
 };
 </script>
 
@@ -90,7 +104,7 @@ const deactivate = (guru) => {
                 <template #actions="{ row }">
                     <div class="flex justify-end gap-2">
                         <button class="rounded-lg p-2 text-gray-600 hover:bg-gray-100" title="Edit" @click="openEdit(row)"><Pencil class="h-4 w-4" /></button>
-                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Nonaktifkan" @click="deactivate(row)"><UserX class="h-4 w-4" /></button>
+                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Nonaktifkan" @click="openDeactivate(row)"><UserX class="h-4 w-4" /></button>
                     </div>
                 </template>
             </DataTable>
@@ -110,9 +124,18 @@ const deactivate = (guru) => {
                 </div>
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="form.processing">Simpan</AppButton>
+                    <AppButton type="submit" :loading="form.processing">Simpan</AppButton>
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            :show="!!deactivateTarget"
+            title="Nonaktifkan Guru"
+            :message="`Nonaktifkan guru ${deactivateTarget?.nama ?? ''}?`"
+            confirm-text="Ya, nonaktifkan"
+            :processing="deactivating"
+            @close="closeDeactivate"
+            @confirm="deactivate"
+        />
     </AuthenticatedLayout>
 </template>

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppButton from '@/Components/AppButton.vue';
 import AppInput from '@/Components/AppInput.vue';
 import AppSelect from '@/Components/AppSelect.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import DataTable from '@/Components/DataTable.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -20,6 +21,8 @@ const showModal = ref(false);
 const showPasswordModal = ref(false);
 const editing = ref(null);
 const passwordTarget = ref(null);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 const filter = ref({ search: props.filters.search ?? '', role: props.filters.role ?? '' });
 const roleOptions = computed(() => props.roles.map((role) => ({ value: role, label: roleLabel(role) })));
 
@@ -79,10 +82,21 @@ const resetPassword = () => {
     });
 };
 
-const destroy = (user) => {
-    if (confirm(`Hapus user ${user.name}?`)) {
-        router.delete(route('users.destroy', user.id), { preserveScroll: true });
+const openDelete = (user) => {
+    deleteTarget.value = user;
+};
+const closeDelete = () => {
+    if (!deleting.value) {
+        deleteTarget.value = null;
     }
+};
+const destroy = () => {
+    deleting.value = true;
+    router.delete(route('users.destroy', deleteTarget.value.id), {
+        preserveScroll: true,
+        onSuccess: () => deleteTarget.value = null,
+        onFinish: () => deleting.value = false,
+    });
 };
 </script>
 
@@ -111,7 +125,7 @@ const destroy = (user) => {
                     <div class="flex justify-end gap-2">
                         <button class="rounded-lg p-2 text-gray-600 hover:bg-gray-100" title="Edit" @click="openEdit(row)"><Pencil class="h-4 w-4" /></button>
                         <button class="rounded-lg p-2 text-primary-700 hover:bg-primary-50" title="Reset password" @click="openPasswordReset(row)"><KeyRound class="h-4 w-4" /></button>
-                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="destroy(row)"><Trash2 class="h-4 w-4" /></button>
+                        <button class="rounded-lg p-2 text-red-600 hover:bg-red-50" title="Hapus" @click="openDelete(row)"><Trash2 class="h-4 w-4" /></button>
                     </div>
                 </template>
             </DataTable>
@@ -132,7 +146,7 @@ const destroy = (user) => {
                 </div>
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="form.processing">Simpan</AppButton>
+                    <AppButton type="submit" :loading="form.processing">Simpan</AppButton>
                 </div>
             </form>
         </Modal>
@@ -145,9 +159,18 @@ const destroy = (user) => {
                 <AppInput v-model="passwordForm.password_confirmation" type="password" label="Konfirmasi Password" :error="passwordForm.errors.password_confirmation" />
                 <div class="flex justify-end gap-3">
                     <AppButton type="button" variant="secondary" @click="showPasswordModal = false">Batal</AppButton>
-                    <AppButton type="submit" :disabled="passwordForm.processing">Reset</AppButton>
+                    <AppButton type="submit" :loading="passwordForm.processing">Reset</AppButton>
                 </div>
             </form>
         </Modal>
+        <ConfirmModal
+            :show="!!deleteTarget"
+            title="Hapus User"
+            :message="`Hapus user ${deleteTarget?.name ?? ''}?`"
+            confirm-text="Ya, hapus"
+            :processing="deleting"
+            @close="closeDelete"
+            @confirm="destroy"
+        />
     </AuthenticatedLayout>
 </template>

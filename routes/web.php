@@ -11,10 +11,11 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AbsensiEditController;
 use App\Http\Controllers\AbsensiHistoryController;
 use App\Http\Controllers\AbsensiInputController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,9 +32,7 @@ Route::get('/', function () {
     return redirect(RouteServiceProvider::HOME);
 })->middleware('auth');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -70,6 +69,9 @@ Route::middleware(['auth', 'role:admin,guru'])->group(function () {
 
 Route::middleware(['auth', 'role:admin,kepala_sekolah'])->group(function () {
     Route::get('/absensi', [AbsensiHistoryController::class, 'index'])->name('absensi.index');
+    Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/pdf', [ReportController::class, 'exportPdf'])->name('laporan.export.pdf');
+    Route::get('/laporan/excel', [ReportController::class, 'exportExcel'])->name('laporan.export.excel');
 });
 
 require __DIR__.'/auth.php';

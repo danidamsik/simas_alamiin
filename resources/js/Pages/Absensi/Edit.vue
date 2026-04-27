@@ -103,7 +103,7 @@ const submit = () => {
             </DataTable>
 
             <div class="flex justify-end">
-                <AppButton type="submit" :disabled="!canEdit || form.processing">
+                <AppButton type="submit" :disabled="!canEdit" :loading="form.processing">
                     <template #icon><Save class="h-4 w-4" /></template>
                     Simpan Perubahan
                 </AppButton>

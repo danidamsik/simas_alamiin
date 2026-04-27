@@ -34,6 +34,8 @@ class PeriodeController extends Controller
         $validated = $request->validate([
             'tahun_ajaran' => ['required', 'string', 'max:255'],
             'semester' => ['required', Rule::in(['ganjil', 'genap'])],
+            'tanggal_mulai' => ['required', 'date'],
+            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
             'is_active' => ['boolean'],
         ]);
 
@@ -66,6 +68,8 @@ class PeriodeController extends Controller
         $validated = $request->validate([
             'tahun_ajaran' => ['required', 'string', 'max:255'],
             'semester' => ['required', Rule::in(['ganjil', 'genap'])],
+            'tanggal_mulai' => ['required', 'date'],
+            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
             'is_active' => ['boolean'],
         ]);
 
