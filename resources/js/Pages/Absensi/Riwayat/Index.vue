@@ -42,6 +42,7 @@ watch(filter, () => {
 }, { deep: true });
 
 const time = (value) => (value ?? '').slice(0, 5);
+const date = (value) => (value ?? '').slice(0, 10);
 const countStatus = (row, status) => row.absensi_detail?.filter((detail) => detail.status === status).length ?? 0;
 const columns = computed(() => [
     { key: 'tanggal', label: 'Tanggal' },
@@ -69,6 +70,7 @@ const columns = computed(() => [
                 :columns="columns"
                 :rows="absensis.data"
             >
+                <template #cell-tanggal="{ row }">{{ date(row.tanggal) }}</template>
                 <template #cell-kelas="{ row }">{{ row.kelas?.nama_kelas }}</template>
                 <template #cell-guru="{ row }">{{ row.guru?.nama }}</template>
                 <template #cell-session="{ row }">{{ row.session?.nama_sesi }} ({{ time(row.session?.jam_mulai) }}-{{ time(row.session?.jam_selesai) }})</template>

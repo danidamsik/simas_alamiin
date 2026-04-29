@@ -242,7 +242,7 @@ const breadcrumbs = computed(() => {
 
         <div class="lg:pl-72">
             <header class="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-                <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                <div class="flex min-h-16 items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
                     <div class="flex min-w-0 items-center gap-3">
                         <button type="button" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden" @click="sidebarOpen = true">
                             <Menu class="h-5 w-5" />
@@ -251,6 +251,20 @@ const breadcrumbs = computed(() => {
                             <slot name="header">
                                 <h1 class="truncate font-heading text-lg font-semibold text-gray-950">Dashboard</h1>
                             </slot>
+
+                            <nav v-if="breadcrumbs.length > 1" class="mt-2 flex min-w-0 items-center gap-1 text-sm" aria-label="Breadcrumb">
+                                <template v-for="(crumb, index) in breadcrumbs" :key="`${crumb.label}-${index}`">
+                                    <ChevronRight v-if="index > 0" class="h-4 w-4 shrink-0 text-gray-400" />
+                                    <Link
+                                        v-if="crumb.href && !crumb.current"
+                                        :href="crumb.href"
+                                        class="truncate font-medium text-gray-500 hover:text-primary-700"
+                                    >
+                                        {{ crumb.label }}
+                                    </Link>
+                                    <span v-else class="truncate font-semibold text-gray-900" aria-current="page">{{ crumb.label }}</span>
+                                </template>
+                            </nav>
                         </div>
                     </div>
 
@@ -273,20 +287,6 @@ const breadcrumbs = computed(() => {
             </header>
 
             <main class="px-4 py-6 sm:px-6 lg:px-8">
-                <nav v-if="breadcrumbs.length > 1" class="mb-4 flex min-w-0 items-center gap-1 text-sm" aria-label="Breadcrumb">
-                    <template v-for="(crumb, index) in breadcrumbs" :key="`${crumb.label}-${index}`">
-                        <ChevronRight v-if="index > 0" class="h-4 w-4 shrink-0 text-gray-400" />
-                        <Link
-                            v-if="crumb.href && !crumb.current"
-                            :href="crumb.href"
-                            class="truncate font-medium text-gray-500 hover:text-primary-700"
-                        >
-                            {{ crumb.label }}
-                        </Link>
-                        <span v-else class="truncate font-semibold text-gray-900" aria-current="page">{{ crumb.label }}</span>
-                    </template>
-                </nav>
-
                 <slot />
             </main>
         </div>

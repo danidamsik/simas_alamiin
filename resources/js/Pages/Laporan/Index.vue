@@ -18,6 +18,8 @@ const props = defineProps({
 
 const page = usePage();
 const generating = ref(false);
+const exporting = ref(null);
+const exportError = ref('');
 const initialPeriodeId = props.filters.periode_id ?? '';
 const findPeriode = (periodeId) => props.periodeOptions.find((item) => String(item.id) === String(periodeId));
 const initialPeriode = findPeriode(initialPeriodeId);
@@ -51,6 +53,10 @@ const query = computed(() => Object.fromEntries(Object.entries(form.value).filte
 const rows = computed(() => props.report?.rows ?? []);
 const hasRows = computed(() => rows.value.length > 0);
 const errors = computed(() => page.props.errors ?? {});
+const exportExtension = {
+    pdf: 'pdf',
+    excel: 'xlsx',
+};
 
 const previewRows = computed(() => rows.value.map((row, index) => ({
     ...row,
@@ -64,6 +70,56 @@ const submit = () => {
         preserveScroll: true,
         onFinish: () => generating.value = false,
     });
+};
+
+const filenameFromDisposition = (disposition) => {
+    const match = disposition?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+
+    return match ? decodeURIComponent(match[1]) : null;
+};
+
+const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+};
+
+const exportReport = async (format) => {
+    if (!hasRows.value || exporting.value) {
+        return;
+    }
+
+    exporting.value = format;
+    exportError.value = '';
+
+    try {
+        const response = await fetch(route(`laporan.export.${format}`, query.value), {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        if (!response.ok || response.headers.get('content-type')?.includes('text/html')) {
+            throw new Error('Export gagal diproses.');
+        }
+
+        const blob = await response.blob();
+        const filename = filenameFromDisposition(response.headers.get('content-disposition'))
+            ?? `laporan-absensi.${exportExtension[format]}`;
+
+        downloadBlob(blob, filename);
+    } catch (error) {
+        exportError.value = error.message || 'Export gagal diproses.';
+    } finally {
+        exporting.value = null;
+    }
 };
 
 watch(() => form.value.periode_id, (periodeId) => {
@@ -112,24 +168,27 @@ const percent = (value) => `${Number(value ?? 0).toLocaleString('id-ID', { maxim
                     </AppButton>
 
                     <div class="flex flex-wrap gap-2">
-                        <a
-                            :href="hasRows ? route('laporan.export.pdf', query) : '#'"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold shadow-sm transition"
-                            :class="hasRows ? 'border-red-600 bg-red-600 text-white hover:bg-red-700' : 'pointer-events-none border-gray-300 bg-gray-100 text-gray-400'"
+                        <AppButton
+                            variant="danger"
+                            :loading="exporting === 'pdf'"
+                            :disabled="!hasRows || !!exporting"
+                            @click="exportReport('pdf')"
                         >
-                            <FileText class="h-4 w-4" />
+                            <template #icon><FileText class="h-4 w-4" /></template>
                             PDF
-                        </a>
-                        <a
-                            :href="hasRows ? route('laporan.export.excel', query) : '#'"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold shadow-sm transition"
-                            :class="hasRows ? 'border-primary-600 bg-primary-600 text-white hover:bg-primary-700' : 'pointer-events-none border-gray-300 bg-gray-100 text-gray-400'"
+                        </AppButton>
+                        <AppButton
+                            :loading="exporting === 'excel'"
+                            :disabled="!hasRows || !!exporting"
+                            @click="exportReport('excel')"
                         >
-                            <FileSpreadsheet class="h-4 w-4" />
+                            <template #icon><FileSpreadsheet class="h-4 w-4" /></template>
                             Excel
-                        </a>
+                        </AppButton>
                     </div>
                 </div>
+
+                <p v-if="exportError" class="mt-3 text-sm font-medium text-red-600">{{ exportError }}</p>
             </form>
 
             <section v-if="report" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
