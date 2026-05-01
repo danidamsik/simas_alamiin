@@ -114,7 +114,7 @@ class AbsensiEditController extends Controller
 
         $now = now();
         $start = Carbon::parse($now->toDateString().' '.$absensi->session->jam_mulai->format('H:i:s'));
-        $deadline = Carbon::parse($now->toDateString().' '.$absensi->session->jam_selesai->format('H:i:s'))->addMinutes(30);
+        $deadline = Carbon::parse($now->toDateString().' '.$absensi->session->jam_selesai->format('H:i:s'))->addMinutes(10);
 
         if (! $now->betweenIncluded($start, $deadline)) {
             return [false, 'Waktu edit telah berakhir, hubungi admin'];

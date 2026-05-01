@@ -37,11 +37,11 @@ class DatabaseSeeder extends Seeder
             PeriodeSeeder::class,
             KelasSeeder::class,
             UserSeeder::class,
-            GuruSeeder::class,
-            SiswaSeeder::class,
-            SessionSeeder::class,
-            JadwalSeeder::class,
-            AbsensiSeeder::class,
+            // GuruSeeder::class,
+            // SiswaSeeder::class,
+            // SessionSeeder::class,
+            // JadwalSeeder::class,
+            // AbsensiSeeder::class,
         ]);
     }
 }
